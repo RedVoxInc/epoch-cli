@@ -1,0 +1,19 @@
+[package]
+name = "epoch-cli"
+version = "0.1.0"
+authors = ["Anthony Christe <anthony.christe@gmail.com>"]
+edition = "2018"
+description = "A small command line utility for working with epoch timestamps."
+repository = "https://github.com/anthonyjchriste/epoch-cli"
+license = "MIT"
+keywords = ["epoch", "timestamp", "cli", "conversion"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+path = "src/main.rs"
+name = "epoch"
+
+[dependencies]
+chrono = "0.4"
+clap = {version = "2.33", features=["yaml"]}
