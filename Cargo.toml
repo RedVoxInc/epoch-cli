@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Anthony Christe <anthony.christe@gmail.com>"]
 edition = "2018"
 description = "A small command line utility for working with epoch timestamps."
-repository = "https://github.com/anthonyjchriste/epoch-cli"
+repository = "https://bitbucket.org/redvoxhi/epoch-cli/src/master/"
 license = "MIT"
 keywords = ["epoch", "timestamp", "cli", "conversion"]
 
