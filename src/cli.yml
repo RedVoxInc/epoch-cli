@@ -1,30 +1,7 @@
 name: epoch
-version: "0.1"
+version: "0.1.1"
 author: Anthony C. <anthony.christe@gmail.com>
 about: A tool for working with epoch timestamps.
-
-#args:
-#  - unit:
-#      help: The time unit of the epoch.
-#      possible_values: [ s, ms, us, ns ]
-#      takes_value: true
-#      long: unit
-#      short: u
-#      default_value: s
-#  - epoch:
-#      help: Convert epoch timestamp to datetime.
-#      takes_value: true
-#      long: from-epoch
-#      short: e
-#  - parts:
-#      value_name: "year month day [hour] [minute] [s] [ms] [us] [ns]"
-#      help: Convert date time to epoch.
-#      long: from-parts
-#      short: p
-#      min_values: 3
-#      max_values: 9
-#      conflicts_with:
-#        - epoch
 
 args:
     - epoch:
