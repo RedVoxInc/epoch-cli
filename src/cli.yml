@@ -1,6 +1,6 @@
 name: epoch
-version: "0.1.1"
-author: Anthony C. <anthony.christe@gmail.com>
+version: "0.1.3"
+author: Anthony C. <achriste@redvoxsound.com>
 about: A tool for working with epoch timestamps.
 
 args:
