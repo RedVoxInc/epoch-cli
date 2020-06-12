@@ -1,4 +1,4 @@
-use clap::{load_yaml, value_t, values_t, App, ArgMatches};
+use clap::{crate_version, load_yaml, value_t, values_t, App, ArgMatches};
 
 use epoch_cli::{Epoch, Parts};
 
@@ -47,7 +47,7 @@ fn display_datetime(epoch: i64, unit: &Unit) {
 
 pub fn run_cli() {
     let yaml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(yaml).get_matches();
+    let matches = App::from_yaml(yaml).version(crate_version!()).get_matches();
     let unit = Unit::from_matches(&matches);
 
     if matches.is_present("epoch") {
