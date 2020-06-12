@@ -97,18 +97,7 @@
 
 use chrono::{DateTime, Duration, TimeZone, Utc};
 
-const NS_PER_US: u32 = 1_000;
-const NS_PER_MS: u32 = 1_000_000;
-
-#[inline]
-fn us_to_ns(us: u32) -> u32 {
-    us * NS_PER_US
-}
-
-#[inline]
-fn ms_to_ns(ms: u32) -> u32 {
-    ms * NS_PER_MS
-}
+mod conversions;
 
 #[derive(Debug, Default)]
 pub struct Parts {
@@ -130,7 +119,9 @@ pub struct Epoch {
 
 impl From<Parts> for Epoch {
     fn from(parts: Parts) -> Self {
-        let total_ns = parts.nanosecond + us_to_ns(parts.microsecond) + ms_to_ns(parts.millisecond);
+        let total_ns = parts.nanosecond
+            + conversions::us_to_ns(parts.microsecond as f64) as u32
+            + conversions::ms_to_ns(parts.millisecond as f64) as u32;
         let datetime = Utc.ymd(parts.year, parts.month, parts.day).and_hms_nano(
             parts.hour,
             parts.minute,
@@ -161,8 +152,8 @@ impl Epoch {
     }
 
     pub fn from_epoch_us(epoch_us: i64) -> Epoch {
-        let epoch_ns = epoch_us * 1000;
-        Epoch::from_epoch_ns(epoch_ns)
+        let epoch_ns = conversions::us_to_ns(epoch_us as f64);
+        Epoch::from_epoch_ns(epoch_ns as i64)
     }
 
     pub fn from_epoch_ns(epoch_ns: i64) -> Epoch {
@@ -179,7 +170,7 @@ impl Epoch {
     }
 
     pub fn epoch_us(&self) -> i64 {
-        ((self.epoch_ns() as f64) / 1000.0).round() as i64
+        conversions::ns_to_us(self.epoch_ns() as f64).round() as i64
     }
 
     pub fn epoch_ns(&self) -> i64 {
