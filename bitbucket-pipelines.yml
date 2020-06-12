@@ -11,4 +11,5 @@ pipelines:
         script: # Modify the commands below to build your repository.
           - rustup component add clippy --toolchain 1.44.0-x86_64-unknown-linux-gnu
           - cargo clippy
+          - cargo test
 
