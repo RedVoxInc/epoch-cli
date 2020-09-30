@@ -1,10 +1,10 @@
 [package]
 name = "epoch-cli"
-version = "0.1.6"
+version = "0.1.7"
 authors = ["Anthony Christe <achriste@redvoxsound.com>"]
 edition = "2018"
 description = "A small command line utility for working with epoch timestamps."
-repository = "https://bitbucket.org/redvoxhi/epoch-cli/src/master/"
+repository = "https://github.com/RedVoxInc/epoch-cli"
 license = "MIT"
 keywords = ["epoch", "timestamp", "cli", "conversion"]
 
