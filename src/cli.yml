@@ -2,6 +2,9 @@ name: epoch
 author: Anthony C. <achriste@redvoxsound.com>
 about: A tool for working with epoch timestamps.
 
+settings:
+  - AllowNegativeNumbers
+
 args:
     - epoch:
           help: An (optional) epoch of seconds, milliseconds, microseconds, or nanoseconds. When present, converts the epoch into an UTC datetime.
