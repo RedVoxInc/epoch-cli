@@ -1,6 +1,7 @@
 use clap::Parser;
-use epoch_cli::errors::Result;
+use epoch_cli::errors::{EpochError, Result};
 use epoch_cli::{Epoch, Parts};
+use std::convert::TryFrom;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None, allow_negative_numbers = true)]
@@ -61,20 +62,21 @@ impl Unit {
     }
 }
 
-fn display_epoch(epoch: Option<Epoch>, unit: &Unit) {
+fn display_epoch(epoch: Option<Epoch>, unit: &Unit) -> Result<()> {
     let epoch = epoch.unwrap_or_default();
     let es = match unit {
         Unit::Seconds => epoch.epoch_s() as i128,
-        Unit::Milliseconds => epoch.epoch_ms(),
-        Unit::Microseconds => epoch.epoch_us(),
+        Unit::Milliseconds => epoch.epoch_ms()?,
+        Unit::Microseconds => epoch.epoch_us()?,
         Unit::Nanoseconds => epoch.epoch_ns(),
     };
     println!("{}", es);
+    Ok(())
 }
 
 fn display_datetime(epoch: i128, unit: &Unit) -> Result<()> {
     let epoch = match unit {
-        Unit::Seconds => Epoch::from_epoch_s(epoch as i64)?,
+        Unit::Seconds => Epoch::from_epoch_s(i64::try_from(epoch)?)?,
         Unit::Milliseconds => Epoch::from_epoch_ms(epoch)?,
         Unit::Microseconds => Epoch::from_epoch_us(epoch)?,
         Unit::Nanoseconds => Epoch::from_epoch_ns(epoch)?,
@@ -92,21 +94,29 @@ pub fn run() -> Result<()> {
         display_datetime(epoch, &unit)?;
     } else if let Some(date_time_parts) = cli.date_time_parts {
         let parts = Parts {
-            year: date_time_parts[0] as i32,
-            month: date_time_parts[1] as u8,
-            day: date_time_parts[2] as u8,
-            hour: *date_time_parts.get(3).unwrap_or(&0) as u8,
-            minute: *date_time_parts.get(4).unwrap_or(&0) as u8,
-            second: *date_time_parts.get(5).unwrap_or(&0) as u8,
-            millisecond: *date_time_parts.get(6).unwrap_or(&0) as u32,
-            microsecond: *date_time_parts.get(7).unwrap_or(&0) as u32,
-            nanosecond: *date_time_parts.get(8).unwrap_or(&0) as u32,
+            year: i32::try_from(get(&date_time_parts, 0)?)?,
+            month: u8::try_from(get(&date_time_parts, 1)?)?,
+            day: u8::try_from(get(&date_time_parts, 2)?)?,
+            hour: u8::try_from(*date_time_parts.get(3).unwrap_or(&0))?,
+            minute: u8::try_from(*date_time_parts.get(4).unwrap_or(&0))?,
+            second: u8::try_from(*date_time_parts.get(5).unwrap_or(&0))?,
+            millisecond: u32::try_from(*date_time_parts.get(6).unwrap_or(&0))?,
+            microsecond: u32::try_from(*date_time_parts.get(7).unwrap_or(&0))?,
+            nanosecond: u32::try_from(*date_time_parts.get(8).unwrap_or(&0))?,
         };
         let epoch: Epoch = parts.try_into()?;
-        display_epoch(Some(epoch), &unit);
+        display_epoch(Some(epoch), &unit)?;
     } else {
-        display_epoch(None, &unit);
+        display_epoch(None, &unit)?;
     }
 
     Ok(())
+}
+
+fn get(values: &Vec<i64>, idx: usize) -> Result<i64> {
+    let res = values
+        .get(idx)
+        .ok_or(EpochError::new("idx for part is out of bounds"))?;
+
+    Ok(*res)
 }

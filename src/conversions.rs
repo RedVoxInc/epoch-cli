@@ -1,38 +1,37 @@
-const NS_PER_US: f64 = 1_000.0;
-const NS_PER_MS: f64 = 1_000_000.0;
+use crate::errors::Result;
+use crate::EpochError;
 
-#[inline]
-pub fn us_to_ns(us: f64) -> f64 {
-    us * NS_PER_US
+pub const NS_PER_MS_U32: u32 = 1_000_000;
+pub const NS_PER_US_U32: u32 = 1_000;
+pub const NS_PER_MS_I128: i128 = 1_000_000;
+pub const NS_PER_US_I128: i128 = 1_000;
+
+pub fn ms_to_ns_u32(ms: u32) -> Result<u32> {
+    ms.checked_mul(NS_PER_MS_U32)
+        .ok_or_else(|| EpochError::numeric_precision())
 }
 
-#[inline]
-pub fn ms_to_ns(ms: f64) -> f64 {
-    ms * NS_PER_MS
+pub fn us_to_ns_u32(us: u32) -> Result<u32> {
+    us.checked_mul(NS_PER_US_U32)
+        .ok_or_else(|| EpochError::numeric_precision())
 }
 
-#[inline]
-pub fn ns_to_us(ns: f64) -> f64 {
-    ns / NS_PER_US
+pub fn ms_to_ns_i128(ms: i128) -> Result<i128> {
+    ms.checked_mul(NS_PER_MS_I128)
+        .ok_or_else(|| EpochError::numeric_precision())
 }
 
-#[cfg(test)]
-mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
+pub fn us_to_ns_i128(us: i128) -> Result<i128> {
+    us.checked_mul(NS_PER_US_I128)
+        .ok_or_else(|| EpochError::numeric_precision())
+}
 
-    #[test]
-    fn test_us_to_ns() {
-        assert_eq!(us_to_ns(1.0), 1_000.0)
-    }
+pub fn ns_to_ms_i128(ns: i128) -> Result<i128> {
+    ns.checked_div(NS_PER_MS_I128)
+        .ok_or_else(|| EpochError::numeric_precision())
+}
 
-    #[test]
-    fn test_ms_to_ns() {
-        assert_eq!(ms_to_ns(1.0), 1_000_000.0)
-    }
-
-    #[test]
-    fn test_ns_to_us() {
-        assert_eq!(ns_to_us(1_000.0), 1.0)
-    }
+pub fn ns_to_us_i128(ns: i128) -> Result<i128> {
+    ns.checked_div(NS_PER_US_I128)
+        .ok_or_else(|| EpochError::numeric_precision())
 }

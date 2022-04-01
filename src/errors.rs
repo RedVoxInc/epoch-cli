@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt;
+use std::num::TryFromIntError;
 use time::error::ComponentRange;
 
 pub type Result<T> = std::result::Result<T, EpochError>;
@@ -15,6 +16,12 @@ impl EpochError {
             err: err.to_string(),
         }
     }
+
+    pub fn numeric_precision() -> Self {
+        Self {
+            err: "A numeric precision error occurred".to_string(),
+        }
+    }
 }
 
 impl fmt::Display for EpochError {
@@ -27,6 +34,14 @@ impl Error for EpochError {}
 
 impl From<ComponentRange> for EpochError {
     fn from(err: ComponentRange) -> Self {
+        Self {
+            err: err.to_string(),
+        }
+    }
+}
+
+impl From<TryFromIntError> for EpochError {
+    fn from(err: TryFromIntError) -> Self {
         Self {
             err: err.to_string(),
         }

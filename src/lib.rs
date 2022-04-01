@@ -114,6 +114,16 @@ pub struct Parts {
     pub nanosecond: u32,
 }
 
+impl Parts {
+    pub fn total_ns(&self) -> Result<u32> {
+        conversions::ms_to_ns_u32(self.millisecond)?
+            .checked_add(conversions::us_to_ns_u32(self.microsecond)?)
+            .ok_or_else(|| EpochError::numeric_precision())?
+            .checked_add(self.nanosecond)
+            .ok_or_else(|| EpochError::numeric_precision())
+    }
+}
+
 #[derive(Debug)]
 pub struct Epoch {
     pub datetime: OffsetDateTime,
@@ -123,11 +133,9 @@ impl TryFrom<Parts> for Epoch {
     type Error = EpochError;
 
     fn try_from(parts: Parts) -> Result<Self> {
-        let total_ns =
-            (parts.millisecond * 1_000_000) + (parts.microsecond * 1_000) + parts.nanosecond;
         let datetime = PrimitiveDateTime::new(
             Date::from_calendar_date(parts.year, parse_month(parts.month)?, parts.day)?,
-            Time::from_hms_nano(parts.hour, parts.minute, parts.second, total_ns)?,
+            Time::from_hms_nano(parts.hour, parts.minute, parts.second, parts.total_ns()?)?,
         )
         .assume_utc();
 
@@ -170,11 +178,11 @@ impl Epoch {
     }
 
     pub fn from_epoch_ms(epoch_ms: i128) -> Result<Epoch> {
-        Epoch::from_epoch_ns(epoch_ms * 1_000_000)
+        Epoch::from_epoch_ns(conversions::ms_to_ns_i128(epoch_ms)?)
     }
 
     pub fn from_epoch_us(epoch_us: i128) -> Result<Epoch> {
-        Epoch::from_epoch_ns(epoch_us * 1_000)
+        Epoch::from_epoch_ns(conversions::us_to_ns_i128(epoch_us)?)
     }
 
     pub fn from_epoch_ns(epoch_ns: i128) -> Result<Epoch> {
@@ -186,12 +194,12 @@ impl Epoch {
         self.datetime.unix_timestamp()
     }
 
-    pub fn epoch_ms(&self) -> i128 {
-        self.epoch_ns() / 1_000_000
+    pub fn epoch_ms(&self) -> Result<i128> {
+        conversions::ns_to_ms_i128(self.epoch_ns())
     }
 
-    pub fn epoch_us(&self) -> i128 {
-        self.epoch_ns() / 1_000
+    pub fn epoch_us(&self) -> Result<i128> {
+        conversions::ns_to_us_i128(self.epoch_ns())
     }
 
     pub fn epoch_ns(&self) -> i128 {
