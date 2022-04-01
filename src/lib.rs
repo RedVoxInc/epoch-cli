@@ -95,18 +95,20 @@
 //!                When present, converts the epoch into an UTC datetime.
 //! ```
 
-use chrono::{DateTime, Duration, TimeZone, Utc};
+use crate::errors::{EpochError, Result};
+use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
 
 mod conversions;
+pub mod errors;
 
 #[derive(Debug, Default)]
 pub struct Parts {
     pub year: i32,
-    pub month: u32,
-    pub day: u32,
-    pub hour: u32,
-    pub minute: u32,
-    pub second: u32,
+    pub month: u8,
+    pub day: u8,
+    pub hour: u8,
+    pub minute: u8,
+    pub second: u8,
     pub millisecond: u32,
     pub microsecond: u32,
     pub nanosecond: u32,
@@ -114,84 +116,93 @@ pub struct Parts {
 
 #[derive(Debug)]
 pub struct Epoch {
-    pub datetime: DateTime<Utc>,
+    pub datetime: OffsetDateTime,
 }
 
-impl From<Parts> for Epoch {
-    fn from(parts: Parts) -> Self {
-        let total_ns = parts.nanosecond
-            + conversions::us_to_ns(parts.microsecond as f64) as u32
-            + conversions::ms_to_ns(parts.millisecond as f64) as u32;
-        let datetime = Utc.ymd(parts.year, parts.month, parts.day).and_hms_nano(
-            parts.hour,
-            parts.minute,
-            parts.second,
-            total_ns,
-        );
-        Epoch::new(datetime)
+impl TryFrom<Parts> for Epoch {
+    type Error = EpochError;
+
+    fn try_from(parts: Parts) -> Result<Self> {
+        let total_ns =
+            (parts.millisecond * 1_000_000) + (parts.microsecond * 1_000) + parts.nanosecond;
+        let datetime = PrimitiveDateTime::new(
+            Date::from_calendar_date(parts.year, parse_month(parts.month)?, parts.day)?,
+            Time::from_hms_nano(parts.hour, parts.minute, parts.second, total_ns)?,
+        )
+        .assume_utc();
+
+        Ok(Epoch::new(datetime))
+    }
+}
+
+fn parse_month(value: u8) -> Result<Month> {
+    match value {
+        1 => Ok(Month::January),
+        2 => Ok(Month::February),
+        3 => Ok(Month::March),
+        4 => Ok(Month::April),
+        5 => Ok(Month::May),
+        6 => Ok(Month::June),
+        7 => Ok(Month::July),
+        8 => Ok(Month::August),
+        9 => Ok(Month::September),
+        10 => Ok(Month::October),
+        11 => Ok(Month::November),
+        12 => Ok(Month::December),
+        _ => Err(EpochError::new(
+            "Illegal month integral. Only [1-12] are valid.",
+        )),
     }
 }
 
 impl Epoch {
-    pub const fn new(datetime: DateTime<Utc>) -> Epoch {
+    pub const fn new(datetime: OffsetDateTime) -> Epoch {
         Epoch { datetime }
     }
 
-    pub fn from_parts(parts: Parts) -> Epoch {
-        parts.into()
+    pub fn from_parts(parts: Parts) -> Result<Epoch> {
+        parts.try_into()
     }
 
-    pub fn from_epoch_s(epoch_s: i64) -> Epoch {
-        let datetime = Utc.timestamp(epoch_s, 0);
-        Epoch::new(datetime)
+    pub fn from_epoch_s(epoch_s: i64) -> Result<Epoch> {
+        let datetime = OffsetDateTime::from_unix_timestamp(epoch_s)?;
+        Ok(Epoch::new(datetime))
     }
 
-    pub fn from_epoch_ms(epoch_ms: i64) -> Epoch {
-        let datetime = Utc.timestamp_millis(epoch_ms);
-        Epoch::new(datetime)
+    pub fn from_epoch_ms(epoch_ms: i128) -> Result<Epoch> {
+        Epoch::from_epoch_ns(epoch_ms * 1_000_000)
     }
 
-    pub fn from_epoch_us(epoch_us: i64) -> Epoch {
-        let epoch_ns = conversions::us_to_ns(epoch_us as f64);
-        Epoch::from_epoch_ns(epoch_ns as i64)
+    pub fn from_epoch_us(epoch_us: i128) -> Result<Epoch> {
+        Epoch::from_epoch_ns(epoch_us * 1_000)
     }
 
-    pub fn from_epoch_ns(epoch_ns: i64) -> Epoch {
-        let datetime = Utc.timestamp_nanos(epoch_ns);
-        Epoch::new(datetime)
+    pub fn from_epoch_ns(epoch_ns: i128) -> Result<Epoch> {
+        let datetime = OffsetDateTime::from_unix_timestamp_nanos(epoch_ns)?;
+        Ok(Epoch::new(datetime))
     }
 
     pub fn epoch_s(&self) -> i64 {
-        self.datetime.timestamp()
+        self.datetime.unix_timestamp()
     }
 
-    pub fn epoch_ms(&self) -> i64 {
-        self.datetime.timestamp_millis()
+    pub fn epoch_ms(&self) -> i128 {
+        self.epoch_ns() / 1_000_000
     }
 
-    pub fn epoch_us(&self) -> i64 {
-        conversions::ns_to_us(self.epoch_ns() as f64).round() as i64
+    pub fn epoch_us(&self) -> i128 {
+        self.epoch_ns() / 1_000
     }
 
-    pub fn epoch_ns(&self) -> i64 {
-        self.datetime.timestamp_nanos()
-    }
-
-    pub fn plus_duration(mut self, duration: Duration) -> Self {
-        self.datetime = self.datetime + duration;
-        self
-    }
-
-    pub fn minus_duration(mut self, duration: Duration) -> Self {
-        self.datetime = self.datetime - duration;
-        self
+    pub fn epoch_ns(&self) -> i128 {
+        self.datetime.unix_timestamp_nanos()
     }
 }
 
 impl Default for Epoch {
     fn default() -> Self {
         Self {
-            datetime: Utc::now(),
+            datetime: OffsetDateTime::now_utc(),
         }
     }
 }

@@ -1,4 +1,5 @@
 use clap::Parser;
+use epoch_cli::errors::Result;
 use epoch_cli::{Epoch, Parts};
 
 #[derive(Parser)]
@@ -7,7 +8,7 @@ struct Cli {
     #[clap(
         help = "An (optional) epoch of seconds, milliseconds, microseconds, or nanoseconds. When present, converts the epoch into an UTC datetime."
     )]
-    pub epoch: Option<i64>,
+    pub epoch: Option<i128>,
 
     #[clap(long = "ms", help = "Sets the time unit to milliseconds")]
     pub milliseconds: bool,
@@ -63,7 +64,7 @@ impl Unit {
 fn display_epoch(epoch: Option<Epoch>, unit: &Unit) {
     let epoch = epoch.unwrap_or_default();
     let es = match unit {
-        Unit::Seconds => epoch.epoch_s(),
+        Unit::Seconds => epoch.epoch_s() as i128,
         Unit::Milliseconds => epoch.epoch_ms(),
         Unit::Microseconds => epoch.epoch_us(),
         Unit::Nanoseconds => epoch.epoch_ns(),
@@ -71,37 +72,41 @@ fn display_epoch(epoch: Option<Epoch>, unit: &Unit) {
     println!("{}", es);
 }
 
-fn display_datetime(epoch: i64, unit: &Unit) {
+fn display_datetime(epoch: i128, unit: &Unit) -> Result<()> {
     let epoch = match unit {
-        Unit::Seconds => Epoch::from_epoch_s(epoch),
-        Unit::Milliseconds => Epoch::from_epoch_ms(epoch),
-        Unit::Microseconds => Epoch::from_epoch_us(epoch),
-        Unit::Nanoseconds => Epoch::from_epoch_ns(epoch),
+        Unit::Seconds => Epoch::from_epoch_s(epoch as i64)?,
+        Unit::Milliseconds => Epoch::from_epoch_ms(epoch)?,
+        Unit::Microseconds => Epoch::from_epoch_us(epoch)?,
+        Unit::Nanoseconds => Epoch::from_epoch_ns(epoch)?,
     };
     println!("{}", epoch.datetime);
+
+    Ok(())
 }
 
-pub fn run() {
+pub fn run() -> Result<()> {
     let cli: Cli = Cli::parse();
     let unit = Unit::from_cli(&cli);
 
     if let Some(epoch) = cli.epoch {
-        display_datetime(epoch, &unit);
+        display_datetime(epoch, &unit)?;
     } else if let Some(date_time_parts) = cli.date_time_parts {
         let parts = Parts {
             year: date_time_parts[0] as i32,
-            month: date_time_parts[1] as u32,
-            day: date_time_parts[2] as u32,
-            hour: *date_time_parts.get(3).unwrap_or(&0) as u32,
-            minute: *date_time_parts.get(4).unwrap_or(&0) as u32,
-            second: *date_time_parts.get(5).unwrap_or(&0) as u32,
+            month: date_time_parts[1] as u8,
+            day: date_time_parts[2] as u8,
+            hour: *date_time_parts.get(3).unwrap_or(&0) as u8,
+            minute: *date_time_parts.get(4).unwrap_or(&0) as u8,
+            second: *date_time_parts.get(5).unwrap_or(&0) as u8,
             millisecond: *date_time_parts.get(6).unwrap_or(&0) as u32,
             microsecond: *date_time_parts.get(7).unwrap_or(&0) as u32,
             nanosecond: *date_time_parts.get(8).unwrap_or(&0) as u32,
         };
-        let epoch: Epoch = parts.into();
+        let epoch: Epoch = parts.try_into()?;
         display_epoch(Some(epoch), &unit);
     } else {
         display_epoch(None, &unit);
     }
+
+    Ok(())
 }

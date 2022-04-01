@@ -1,5 +1,7 @@
 mod cli;
 
-fn main() {
-    cli::run();
+use epoch_cli::errors::Result;
+
+fn main() -> Result<()> {
+    cli::run()
 }
