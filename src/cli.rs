@@ -64,13 +64,13 @@ impl Unit {
 
 fn display_epoch(epoch: Option<Epoch>, unit: &Unit) -> Result<()> {
     let epoch = epoch.unwrap_or_default();
-    let es = match unit {
+    let epoch = match unit {
         Unit::Seconds => epoch.epoch_s() as i128,
         Unit::Milliseconds => epoch.epoch_ms()?,
         Unit::Microseconds => epoch.epoch_us()?,
         Unit::Nanoseconds => epoch.epoch_ns(),
     };
-    println!("{}", es);
+    println!("{}", epoch);
     Ok(())
 }
 
