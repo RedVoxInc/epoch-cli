@@ -71,29 +71,6 @@
 //! $ epoch --dt 2020 04 01 23 00 30
 //! 1585782030
 //!```
-//!
-//! ### Full usage
-//!
-//! ```text
-//! USAGE:
-//! epoch [FLAGS] [OPTIONS] [epoch]
-//!
-//! FLAGS:
-//!     -h, --help       Prints help information
-//!         --us         Sets the time unit to microseconds
-//!         --ms         Sets the time unit to milliseconds
-//!         --ns         Sets the time unit to nanoseconds
-//!     -V, --version    Prints version information
-//!
-//! OPTIONS:
-//!         --dt <year month day [hour] [minute] [s] [ms] [us] [ns]>
-//!             Convert parts of a date and time into an epoch timestamp.
-//!
-//!
-//! ARGS:
-//!     <epoch>    An (optional) epoch of seconds, milliseconds, microseconds, or nanoseconds.
-//!                When present, converts the epoch into an UTC datetime.
-//! ```
 
 use crate::errors::{EpochError, Result};
 use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
@@ -118,9 +95,9 @@ impl Parts {
     pub fn total_ns(&self) -> Result<u32> {
         conversions::ms_to_ns_u32(self.millisecond)?
             .checked_add(conversions::us_to_ns_u32(self.microsecond)?)
-            .ok_or_else(|| EpochError::numeric_precision())?
+            .ok_or_else(|| EpochError::numeric_precision("When summing total ns"))?
             .checked_add(self.nanosecond)
-            .ok_or_else(|| EpochError::numeric_precision())
+            .ok_or_else(|| EpochError::numeric_precision("When summing total ns"))
     }
 }
 
@@ -157,9 +134,9 @@ fn parse_month(value: u8) -> Result<Month> {
         10 => Ok(Month::October),
         11 => Ok(Month::November),
         12 => Ok(Month::December),
-        _ => Err(EpochError::new(
-            "Illegal month integral. Only [1-12] are valid.",
-        )),
+        i => Err(EpochError {
+            err: format!("Illegal month integral={}. Valid values are [1-12].", i),
+        }),
     }
 }
 

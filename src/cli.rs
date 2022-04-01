@@ -114,9 +114,13 @@ pub fn run() -> Result<()> {
 }
 
 fn get(values: &Vec<i64>, idx: usize) -> Result<i64> {
-    let res = values
-        .get(idx)
-        .ok_or(EpochError::new("idx for part is out of bounds"))?;
+    let res = values.get(idx).ok_or(EpochError {
+        err: format!(
+            "idx={} for parts is out of bounds=[0,{})",
+            idx,
+            values.len()
+        ),
+    })?;
 
     Ok(*res)
 }

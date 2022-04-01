@@ -7,7 +7,7 @@ pub type Result<T> = std::result::Result<T, EpochError>;
 
 #[derive(Debug)]
 pub struct EpochError {
-    err: String,
+    pub err: String,
 }
 
 impl EpochError {
@@ -17,9 +17,9 @@ impl EpochError {
         }
     }
 
-    pub fn numeric_precision() -> Self {
+    pub fn numeric_precision(err: &str) -> Self {
         Self {
-            err: "A numeric precision error occurred".to_string(),
+            err: format!("A numeric precision error occurred: {}", err),
         }
     }
 }
