@@ -1,8 +1,8 @@
 [package]
 name = "epoch-cli"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Anthony Christe <achriste@redvoxsound.com>"]
-edition = "2018"
+edition = "2021"
 description = "A small command line utility for working with epoch timestamps."
 repository = "https://github.com/RedVoxInc/epoch-cli"
 license = "MIT"
@@ -18,5 +18,5 @@ path = "src/main.rs"
 name = "epoch"
 
 [dependencies]
-chrono = {version = "0.4", default-features = false, features = ["clock"] }
-clap = {version = "2.33", features=["yaml"]}
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+clap = { version = "3.1", features = [ "derive" ] }

@@ -1,6 +1,24 @@
-use clap::{crate_version, load_yaml, value_t, values_t, App, ArgMatches};
-
+use clap::Parser;
 use epoch_cli::{Epoch, Parts};
+
+#[derive(Parser)]
+#[clap(author, version, about, long_about = None, allow_negative_numbers = true)]
+struct Cli {
+    #[clap(help = "An (optional) epoch of seconds, milliseconds, microseconds, or nanoseconds. When present, converts the epoch into an UTC datetime.")]
+    pub epoch: Option<i64>,
+
+    #[clap(long = "ms", help = "Sets the time unit to milliseconds")]
+    pub milliseconds: bool,
+
+    #[clap(long = "us", conflicts_with = "milliseconds", help = "Sets the time unit to microseconds")]
+    pub microseconds: bool,
+
+    #[clap(long = "ns", conflicts_with = "microseconds", conflicts_with = "milliseconds", help = "Sets the time unit to nanoseconds")]
+    pub nanoseconds: bool,
+
+    #[clap(long = "dt", conflicts_with = "epoch", min_values = 3, max_values = 9, value_name = "year month day [hour] [minute] [s] [ms] [us] [ns]", help = "Convert parts of a date and time into an epoch timestamp.")]
+    pub date_time_parts: Option<Vec<i64>>
+}
 
 #[derive(Debug)]
 enum Unit {
@@ -11,12 +29,12 @@ enum Unit {
 }
 
 impl Unit {
-    fn from_matches(matches: &ArgMatches) -> Unit {
-        if matches.is_present("milliseconds") {
+    fn from_cli(cli: &Cli) -> Unit {
+        if cli.milliseconds {
             Unit::Milliseconds
-        } else if matches.is_present("microseconds") {
+        } else if cli.microseconds {
             Unit::Microseconds
-        } else if matches.is_present("nanoseconds") {
+        } else if cli.nanoseconds {
             Unit::Nanoseconds
         } else {
             Unit::Seconds
@@ -46,25 +64,22 @@ fn display_datetime(epoch: i64, unit: &Unit) {
 }
 
 pub fn run_cli() {
-    let yaml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(yaml).version(crate_version!()).get_matches();
-    let unit = Unit::from_matches(&matches);
+    let cli: Cli = Cli::parse();
+    let unit = Unit::from_cli(&cli);
 
-    if matches.is_present("epoch") {
-        let epoch: i64 = value_t!(matches, "epoch", i64).unwrap();
+    if let Some(epoch) = cli.epoch {
         display_datetime(epoch, &unit);
-    } else if matches.is_present("date_time_parts") {
-        let parts_vec: Vec<u32> = values_t!(matches, "date_time_parts", u32).unwrap();
+    } else if let Some(date_time_parts) = cli.date_time_parts {
         let parts = Parts {
-            year: parts_vec[0] as i32,
-            month: parts_vec[1],
-            day: parts_vec[2],
-            hour: *parts_vec.get(3).unwrap_or(&0),
-            minute: *parts_vec.get(4).unwrap_or(&0),
-            second: *parts_vec.get(5).unwrap_or(&0),
-            millisecond: *parts_vec.get(6).unwrap_or(&0),
-            microsecond: *parts_vec.get(7).unwrap_or(&0),
-            nanosecond: *parts_vec.get(8).unwrap_or(&0),
+            year: date_time_parts[0] as i32,
+            month: date_time_parts[1] as u32,
+            day: date_time_parts[2] as u32,
+            hour: *date_time_parts.get(3).unwrap_or(&0) as u32,
+            minute: *date_time_parts.get(4).unwrap_or(&0) as u32,
+            second: *date_time_parts.get(5).unwrap_or(&0) as u32,
+            millisecond: *date_time_parts.get(6).unwrap_or(&0) as u32,
+            microsecond: *date_time_parts.get(7).unwrap_or(&0) as u32,
+            nanosecond: *date_time_parts.get(8).unwrap_or(&0) as u32,
         };
         let epoch: Epoch = parts.into();
         display_epoch(Some(epoch), &unit);
