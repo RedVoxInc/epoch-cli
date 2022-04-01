@@ -4,20 +4,38 @@ use epoch_cli::{Epoch, Parts};
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None, allow_negative_numbers = true)]
 struct Cli {
-    #[clap(help = "An (optional) epoch of seconds, milliseconds, microseconds, or nanoseconds. When present, converts the epoch into an UTC datetime.")]
+    #[clap(
+        help = "An (optional) epoch of seconds, milliseconds, microseconds, or nanoseconds. When present, converts the epoch into an UTC datetime."
+    )]
     pub epoch: Option<i64>,
 
     #[clap(long = "ms", help = "Sets the time unit to milliseconds")]
     pub milliseconds: bool,
 
-    #[clap(long = "us", conflicts_with = "milliseconds", help = "Sets the time unit to microseconds")]
+    #[clap(
+        long = "us",
+        conflicts_with = "milliseconds",
+        help = "Sets the time unit to microseconds"
+    )]
     pub microseconds: bool,
 
-    #[clap(long = "ns", conflicts_with = "microseconds", conflicts_with = "milliseconds", help = "Sets the time unit to nanoseconds")]
+    #[clap(
+        long = "ns",
+        conflicts_with = "microseconds",
+        conflicts_with = "milliseconds",
+        help = "Sets the time unit to nanoseconds"
+    )]
     pub nanoseconds: bool,
 
-    #[clap(long = "dt", conflicts_with = "epoch", min_values = 3, max_values = 9, value_name = "year month day [hour] [minute] [s] [ms] [us] [ns]", help = "Convert parts of a date and time into an epoch timestamp.")]
-    pub date_time_parts: Option<Vec<i64>>
+    #[clap(
+        long = "dt",
+        conflicts_with = "epoch",
+        min_values = 3,
+        max_values = 9,
+        value_name = "year month day [hour] [minute] [s] [ms] [us] [ns]",
+        help = "Convert parts of a date and time into an epoch timestamp."
+    )]
+    pub date_time_parts: Option<Vec<i64>>,
 }
 
 #[derive(Debug)]
@@ -29,7 +47,7 @@ enum Unit {
 }
 
 impl Unit {
-    fn from_cli(cli: &Cli) -> Unit {
+    const fn from_cli(cli: &Cli) -> Unit {
         if cli.milliseconds {
             Unit::Milliseconds
         } else if cli.microseconds {
@@ -60,10 +78,10 @@ fn display_datetime(epoch: i64, unit: &Unit) {
         Unit::Microseconds => Epoch::from_epoch_us(epoch),
         Unit::Nanoseconds => Epoch::from_epoch_ns(epoch),
     };
-    println!("{}", epoch.datetime)
+    println!("{}", epoch.datetime);
 }
 
-pub fn run_cli() {
+pub fn run() {
     let cli: Cli = Cli::parse();
     let unit = Unit::from_cli(&cli);
 

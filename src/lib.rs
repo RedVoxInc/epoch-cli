@@ -7,11 +7,11 @@
 //! * Can work with units of seconds, milliseconds, microseconds, or nanoseconds
 //! * Can convert epoch timestamps into dates and times
 //! * Can convert dates and times into epoch timestamps
-//! * Inspired by https://www.epochconverter.com/
+//! * Inspired by [https://www.epochconverter.com/](https://docs.rs/epoch-cli)
 //!
 //! ### Documentation
 //!
-//! Full documentation, instructions, and API are available at: https://docs.rs/epoch-cli
+//! Full documentation, instructions, and API are available at: [https://docs.rs/epoch-cli](https://docs.rs/epoch-cli)
 //!
 //! ### Installing with cargo
 //!
@@ -133,7 +133,7 @@ impl From<Parts> for Epoch {
 }
 
 impl Epoch {
-    pub fn new(datetime: DateTime<Utc>) -> Epoch {
+    pub const fn new(datetime: DateTime<Utc>) -> Epoch {
         Epoch { datetime }
     }
 
