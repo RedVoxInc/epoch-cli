@@ -87,7 +87,10 @@ fn display_datetime(epoch: i128, unit: &Unit) -> Result<()> {
 }
 
 pub fn run() -> Result<()> {
-    let cli: Cli = Cli::parse();
+    _run(Cli::parse())
+}
+
+fn _run(cli: Cli) -> Result<()> {
     let unit = Unit::from_cli(&cli);
 
     if let Some(epoch) = cli.epoch {
