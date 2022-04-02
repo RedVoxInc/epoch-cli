@@ -41,3 +41,63 @@ pub fn ns_to_us_i128(ns: i128) -> Result<i128> {
         EpochError::numeric_precision(format!("Conversion from {}ns to us (i128)", ns).as_str())
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ms_to_ns_u32_zero() {
+        assert_eq!(ms_to_ns_u32(0).unwrap(), 0)
+    }
+
+    #[test]
+    fn test_ms_to_ns_u32_one() {
+        assert_eq!(ms_to_ns_u32(1).unwrap(), 1_000_000)
+    }
+
+    #[test]
+    fn test_ms_to_ns_u32_bad() {
+        assert!(ms_to_ns_u32(u32::MAX).is_err());
+    }
+
+    #[test]
+    fn test_ms_to_ns_i128_zero() {
+        assert_eq!(ms_to_ns_i128(0).unwrap(), 0)
+    }
+
+    #[test]
+    fn test_ms_to_ns_i128_one() {
+        assert_eq!(ms_to_ns_i128(1).unwrap(), 1_000_000)
+    }
+
+    #[test]
+    fn test_ms_to_ns_i128_minus_one() {
+        assert_eq!(ms_to_ns_i128(-1).unwrap(), -1_000_000)
+    }
+
+    #[test]
+    fn test_us_to_ns_u32_zero() {
+        assert_eq!(us_to_ns_u32(0).unwrap(), 0)
+    }
+
+    #[test]
+    fn test_us_to_ns_u32_one() {
+        assert_eq!(us_to_ns_u32(1).unwrap(), 1_000)
+    }
+
+    #[test]
+    fn test_us_to_ns_i128_zero() {
+        assert_eq!(us_to_ns_i128(0).unwrap(), 0)
+    }
+
+    #[test]
+    fn test_us_to_ns_i128_one() {
+        assert_eq!(us_to_ns_i128(1).unwrap(), 1_000)
+    }
+
+    #[test]
+    fn test_us_to_ns_i128_minus_one() {
+        assert_eq!(us_to_ns_i128(-1).unwrap(), -1_000)
+    }
+}

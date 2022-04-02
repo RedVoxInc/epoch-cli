@@ -1,6 +1,6 @@
 [package]
 name = "epoch-cli"
-version = "0.3.0"
+version = "1.0.0"
 authors = ["Anthony Christe <achriste@redvoxsound.com>"]
 edition = "2021"
 description = "A small command line utility for working with epoch timestamps."

@@ -11,12 +11,6 @@ pub struct EpochError {
 }
 
 impl EpochError {
-    pub fn new(err: &str) -> Self {
-        Self {
-            err: err.to_string(),
-        }
-    }
-
     pub fn numeric_precision(err: &str) -> Self {
         Self {
             err: format!("A numeric precision error occurred: {}", err),
