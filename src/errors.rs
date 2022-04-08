@@ -1,4 +1,4 @@
-//! A generic light-weight error type.
+//! Error types.
 
 use std::error::Error;
 use std::fmt;
@@ -7,6 +7,7 @@ use time::error::ComponentRange;
 
 pub type Result<T> = std::result::Result<T, EpochError>;
 
+/// A generic epoch error.
 #[derive(Debug)]
 pub struct EpochError {
     pub err: String,
@@ -29,6 +30,7 @@ impl fmt::Display for EpochError {
 
 impl Error for EpochError {}
 
+/// Convert errors from the time crate to EpochErrors.
 impl From<ComponentRange> for EpochError {
     fn from(err: ComponentRange) -> Self {
         Self {
@@ -37,6 +39,7 @@ impl From<ComponentRange> for EpochError {
     }
 }
 
+/// Convert errors during integer conversions to EpochErrors.
 impl From<TryFromIntError> for EpochError {
     fn from(err: TryFromIntError) -> Self {
         Self {
