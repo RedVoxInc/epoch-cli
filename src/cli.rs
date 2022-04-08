@@ -1,11 +1,14 @@
+//! The construction of the CLI.
+
 use clap::Parser;
 use epoch_cli::errors::{EpochError, Result};
-use epoch_cli::{Epoch, Parts};
+use epoch_cli::{DateTimeParts, Epoch};
 use std::convert::TryFrom;
 
+/// Defines the CLI through clap derive.
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None, allow_negative_numbers = true)]
-struct Cli {
+pub struct Cli {
     #[clap(
         help = "An (optional) epoch of seconds, milliseconds, microseconds, or nanoseconds. When present, converts the epoch into an UTC datetime."
     )]
@@ -40,6 +43,7 @@ struct Cli {
     pub date_time_parts: Option<Vec<i64>>,
 }
 
+/// Available epoch time bases
 #[derive(Debug)]
 enum Unit {
     Seconds,
@@ -49,6 +53,7 @@ enum Unit {
 }
 
 impl Unit {
+    /// Extracts which time base to use from the CLI. Defaults to seconds.
     const fn from_cli(cli: &Cli) -> Unit {
         if cli.milliseconds {
             Unit::Milliseconds
@@ -62,6 +67,8 @@ impl Unit {
     }
 }
 
+/// Displays the epoch timestamp from a given Epoch and its unit.
+/// If no epoch is provided, the current date/time is used.
 fn display_epoch(epoch: Option<Epoch>, unit: &Unit) -> Result<()> {
     let epoch = epoch.unwrap_or_default();
     let epoch = match unit {
@@ -74,6 +81,7 @@ fn display_epoch(epoch: Option<Epoch>, unit: &Unit) -> Result<()> {
     Ok(())
 }
 
+/// Converts and displays the datetime from a given epoch timestamp and its unit.
 fn display_datetime(epoch: i128, unit: &Unit) -> Result<()> {
     let epoch = match unit {
         Unit::Seconds => Epoch::from_epoch_s(i64::try_from(epoch)?)?,
@@ -81,22 +89,21 @@ fn display_datetime(epoch: i128, unit: &Unit) -> Result<()> {
         Unit::Microseconds => Epoch::from_epoch_us(epoch)?,
         Unit::Nanoseconds => Epoch::from_epoch_ns(epoch)?,
     };
-    println!("{}", epoch.datetime);
+    println!("{}", epoch.fmt());
 
     Ok(())
 }
 
-pub fn run() -> Result<()> {
-    _run(Cli::parse())
-}
-
-fn _run(cli: Cli) -> Result<()> {
+/// Runs the CLI.
+pub fn run(cli: Cli) -> Result<()> {
     let unit = Unit::from_cli(&cli);
 
     if let Some(epoch) = cli.epoch {
+        // Epoch was provided. Convert and display date/time.
         display_datetime(epoch, &unit)?;
     } else if let Some(date_time_parts) = cli.date_time_parts {
-        let parts = Parts {
+        // Date/time parts were provided. Convert to epoch and display.
+        let parts = DateTimeParts {
             year: i32::try_from(get(&date_time_parts, 0)?)?,
             month: u8::try_from(get(&date_time_parts, 1)?)?,
             day: u8::try_from(get(&date_time_parts, 2)?)?,
@@ -110,12 +117,15 @@ fn _run(cli: Cli) -> Result<()> {
         let epoch: Epoch = parts.try_into()?;
         display_epoch(Some(epoch), &unit)?;
     } else {
+        // Nothing was provided, display current epoch.
         display_epoch(None, &unit)?;
     }
 
     Ok(())
 }
 
+/// Attempts to extract a specific value from the date/time parts. If the particular part is not
+/// present, an EpochError is returned.
 fn get(values: &Vec<i64>, idx: usize) -> Result<i64> {
     let res = values.get(idx).ok_or(EpochError {
         err: format!(

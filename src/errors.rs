@@ -1,3 +1,5 @@
+//! A generic light-weight error type.
+
 use std::error::Error;
 use std::fmt;
 use std::num::TryFromIntError;
@@ -11,6 +13,7 @@ pub struct EpochError {
 }
 
 impl EpochError {
+    /// Used when an overflow or underflow occurs during time base conversions.
     pub fn numeric_precision(err: &str) -> Self {
         Self {
             err: format!("A numeric precision error occurred: {}", err),

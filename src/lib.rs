@@ -75,11 +75,12 @@
 use crate::errors::{EpochError, Result};
 use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
 
-mod conversions;
+pub mod conversions;
 pub mod errors;
 
+/// The parts that make up a date/time.
 #[derive(Debug, Default)]
-pub struct Parts {
+pub struct DateTimeParts {
     pub year: i32,
     pub month: u8,
     pub day: u8,
@@ -91,7 +92,9 @@ pub struct Parts {
     pub nanosecond: u32,
 }
 
-impl Parts {
+impl DateTimeParts {
+    /// Computes the total number of nanoseconds from summing the millisecond, microsecond,
+    /// and nanosecond parts.
     pub fn total_ns(&self) -> Result<u32> {
         conversions::ms_to_ns_u32(self.millisecond)?
             .checked_add(conversions::us_to_ns_u32(self.microsecond)?)
@@ -101,15 +104,16 @@ impl Parts {
     }
 }
 
+/// A struct that provides conversions to/from epochs/date/time.
 #[derive(Debug)]
 pub struct Epoch {
-    pub datetime: OffsetDateTime,
+    datetime: OffsetDateTime,
 }
 
-impl TryFrom<Parts> for Epoch {
+impl TryFrom<DateTimeParts> for Epoch {
     type Error = EpochError;
-
-    fn try_from(parts: Parts) -> Result<Self> {
+    /// Attempts to convert DateTimeParts into an Epoch
+    fn try_from(parts: DateTimeParts) -> Result<Self> {
         let datetime = PrimitiveDateTime::new(
             Date::from_calendar_date(parts.year, parse_month(parts.month)?, parts.day)?,
             Time::from_hms_nano(parts.hour, parts.minute, parts.second, parts.total_ns()?)?,
@@ -120,6 +124,7 @@ impl TryFrom<Parts> for Epoch {
     }
 }
 
+/// Converts an integral month value into a time "Month"
 fn parse_month(value: u8) -> Result<Month> {
     match value {
         1 => Ok(Month::January),
@@ -141,50 +146,66 @@ fn parse_month(value: u8) -> Result<Month> {
 }
 
 impl Epoch {
+    /// Instantiates a new Epoch
     pub const fn new(datetime: OffsetDateTime) -> Epoch {
         Epoch { datetime }
     }
 
-    pub fn from_parts(parts: Parts) -> Result<Epoch> {
+    /// Creates a new Epoch from DateTimeParts
+    pub fn from_parts(parts: DateTimeParts) -> Result<Epoch> {
         parts.try_into()
     }
 
+    /// Creates an epoch from seconds
     pub fn from_epoch_s(epoch_s: i64) -> Result<Epoch> {
         let datetime = OffsetDateTime::from_unix_timestamp(epoch_s)?;
         Ok(Epoch::new(datetime))
     }
 
+    /// Creates an epoch from milliseconds
     pub fn from_epoch_ms(epoch_ms: i128) -> Result<Epoch> {
         Epoch::from_epoch_ns(conversions::ms_to_ns_i128(epoch_ms)?)
     }
 
+    /// Creates an epoch from microseconds
     pub fn from_epoch_us(epoch_us: i128) -> Result<Epoch> {
         Epoch::from_epoch_ns(conversions::us_to_ns_i128(epoch_us)?)
     }
 
+    /// Creates an epoch from nanoseconds
     pub fn from_epoch_ns(epoch_ns: i128) -> Result<Epoch> {
         let datetime = OffsetDateTime::from_unix_timestamp_nanos(epoch_ns)?;
         Ok(Epoch::new(datetime))
     }
 
+    /// Returns the epoch as seconds
     pub fn epoch_s(&self) -> i64 {
         self.datetime.unix_timestamp()
     }
 
+    /// Returns the epoch as milliseconds
     pub fn epoch_ms(&self) -> Result<i128> {
         conversions::ns_to_ms_i128(self.epoch_ns())
     }
 
+    /// Returns the epoch as microseconds
     pub fn epoch_us(&self) -> Result<i128> {
         conversions::ns_to_us_i128(self.epoch_ns())
     }
 
+    /// Returns the epoch as nanoseconds
     pub fn epoch_ns(&self) -> i128 {
         self.datetime.unix_timestamp_nanos()
+    }
+
+    /// Formats the epoch as a date/time
+    pub fn fmt(&self) -> String {
+        self.datetime.to_string()
     }
 }
 
 impl Default for Epoch {
+    /// Returns the current epoch
     fn default() -> Self {
         Self {
             datetime: OffsetDateTime::now_utc(),
