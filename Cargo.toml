@@ -18,5 +18,5 @@ path = "src/main.rs"
 name = "epoch"
 
 [dependencies]
-time = "0.3"
+time = { version = "0.3", features = ["large-dates"] }
 clap = { version = "3.1", features = [ "derive" ] }
