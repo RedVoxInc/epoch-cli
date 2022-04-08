@@ -7,6 +7,7 @@ description = "A small command line utility for working with epoch timestamps."
 repository = "https://github.com/RedVoxInc/epoch-cli"
 license = "MIT"
 keywords = ["epoch", "timestamp", "cli", "conversion"]
+categories = ["command-line-utilities", "date-and-time"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
