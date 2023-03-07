@@ -7,24 +7,24 @@ use std::convert::TryFrom;
 
 /// Defines the CLI through clap derive.
 #[derive(Parser)]
-#[clap(author, version, about, long_about = None, allow_negative_numbers = true)]
+#[command(author, version, about, long_about = None, allow_negative_numbers = true)]
 pub struct Cli {
-    #[clap(
+    #[arg(
         help = "An (optional) epoch of seconds, milliseconds, microseconds, or nanoseconds. When present, converts the epoch into an UTC datetime."
     )]
     pub epoch: Option<i128>,
 
-    #[clap(long = "ms", help = "Sets the time unit to milliseconds")]
+    #[arg(long = "ms", help = "Sets the time unit to milliseconds")]
     pub milliseconds: bool,
 
-    #[clap(
+    #[arg(
         long = "us",
         conflicts_with = "milliseconds",
         help = "Sets the time unit to microseconds"
     )]
     pub microseconds: bool,
 
-    #[clap(
+    #[arg(
         long = "ns",
         conflicts_with = "microseconds",
         conflicts_with = "milliseconds",
@@ -32,11 +32,10 @@ pub struct Cli {
     )]
     pub nanoseconds: bool,
 
-    #[clap(
+    #[arg(
         long = "dt",
         conflicts_with = "epoch",
-        min_values = 3,
-        max_values = 9,
+        num_args = 3..=9,
         value_name = "year month day [hour] [minute] [s] [ms] [us] [ns]",
         help = "Convert parts of a date and time into an epoch timestamp."
     )]
