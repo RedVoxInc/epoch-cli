@@ -1,8 +1,8 @@
 [package]
 name = "epoch-cli"
-version = "1.0.1"
-authors = ["Anthony Christe <achriste@redvoxsound.com>"]
-edition = "2021"
+version = "1.0.2"
+authors = ["Anthony Christe <anthony.christe@gmail.com.com>"]
+edition = "2024"
 description = "A small command line utility for working with epoch timestamps."
 repository = "https://github.com/RedVoxInc/epoch-cli"
 license = "MIT"
@@ -19,5 +19,5 @@ path = "src/main.rs"
 name = "epoch"
 
 [dependencies]
-clap = { version = "4.1", features = [ "derive" ] }
+clap = { version = "4.5", features = [ "derive" ] }
 time = { version = "0.3", features = ["large-dates"] }
